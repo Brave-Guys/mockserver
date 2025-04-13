@@ -6,6 +6,10 @@ const app = express()
 const url = process.env.MONGODB_URL
 let db
 
+const cors = require('cors');
+app.use(cors()); // CORS 허용
+app.use(express.json()); // JSON 파싱
+
 new MongoClient(url).connect().then((client) => {
     console.log('DB 연결 성공')
     db = client.db('StrengthHub')
@@ -21,13 +25,22 @@ app.get('/', (req, res) => {
     res.send('반갑다')
 })
 
-app.get('/user', () => {
-    db.collection('user').insertOne({
-        user_id: 'combikms',
-        name: '강인석',
-        email: 'combikms@naver.com',
-        password: 'qwer1234!',
-        role: 'combikms',
-        userPlanType: 'BEGINNER',
-    })
-})
+app.post('/register', async (req, res) => {
+    try {
+        const { username, password, nickname, email } = req.body;
+        const newUser = {
+            user_id: username,
+            name: nickname,
+            email: email,
+            password: password,
+            role: 'USER',              // 기본값
+            userPlanType: 'BEGINNER'   // 기본값
+        };
+
+        const result = await db.collection('user').insertOne(newUser);
+        res.status(200).json({ message: '등록 완료', insertedId: result.insertedId });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: '서버 오류' });
+    }
+});
