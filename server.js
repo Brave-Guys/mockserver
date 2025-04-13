@@ -20,3 +20,14 @@ app.listen(8080, () => {
 app.get('/', (req, res) => {
     res.send('반갑다')
 })
+
+app.get('/user', () => {
+    db.collection('user').insertOne({
+        user_id: 'combikms',
+        name: '강인석',
+        email: 'combikms@naver.com',
+        password: 'qwer1234!',
+        role: 'combikms',
+        userPlanType: 'BEGINNER',
+    })
+})
