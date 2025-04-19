@@ -51,11 +51,9 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const user = await db.collection('user').findOne({ user_id: username });
 
-        if (!user) {
-            return res.status(401).json({ message: '존재하지 않는 계정입니다.' });
-        }
+        const user = await db.collection('user').findOne({ user_id: username });
+        if (!user) return res.status(401).json({ message: '존재하지 않는 계정입니다.' });
 
         if (user.password !== password) {
             return res.status(401).json({ message: '비밀번호가 일치하지 않습니다.' });
@@ -71,16 +69,15 @@ app.post('/login', async (req, res) => {
             { expiresIn: '1h' }
         );
 
+        // 비밀번호 제거하고 유저 정보 준비
+        const { password: _, ...userInfo } = user;
+        userInfo._id = user._id.toString(); // ObjectId → 문자열 변환 (선택)
+
         res.status(200).json({
             message: '로그인 성공',
             token: token,
-            user: {
-                user_id: user.user_id,
-                name: user.name,
-                role: user.role
-            }
+            user: userInfo
         });
-
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: '서버 오류' });
